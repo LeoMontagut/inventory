@@ -38,9 +38,11 @@
                         </div>
                     </div>
 
+
+
                     <div class="mb-3">
                         <label for="{{ form.business_logo.id_for_label }}" class="form-label">
-                            <i class="fas fa-image"></i> {{ form.business_logo.label }}
+                            <i class="fas fa-image"></i> Logo del Negocio
                         </label>
                         {% if profile.business_logo %}
                             <div class="mb-2">
@@ -50,7 +52,7 @@
                             </div>
                         {% endif %}
                         {{ form.business_logo }}
-                        <div class="form-text">Recomendado: imagen cuadrada, máximo 2MB</div>
+                        <div class="form-text">Esta imagen aparecerá como marca de agua en tus PDFs</div>
                         {% if form.business_logo.errors %}
                             <div class="text-danger">{{ form.business_logo.errors }}</div>
                         {% endif %}

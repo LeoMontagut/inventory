@@ -64,19 +64,7 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="{{ form.image.id_for_label }}" class="form-label">Imagen</label>
-                        {% if product.image %}
-                            <div class="mb-2">
-                                <img src="{{ product.image.url }}" alt="{{ product.name }}"
-                                     class="img-thumbnail" style="max-width: 200px;">
-                            </div>
-                        {% endif %}
-                        {{ form.image }}
-                        {% if form.image.errors %}
-                            <div class="text-danger">{{ form.image.errors }}</div>
-                        {% endif %}
-                    </div>
+
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{% url 'product_list' %}" class="btn btn-secondary">

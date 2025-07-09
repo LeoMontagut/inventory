@@ -84,7 +84,7 @@ def product_list(request):
 @login_required
 def add_product(request):
     if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES, user=request.user)
+        form = ProductForm(request.POST, user=request.user)
         if form.is_valid():
             product = form.save(commit=False)
             product.user = request.user
@@ -99,7 +99,7 @@ def add_product(request):
 def edit_product(request, pk):
     product = get_object_or_404(Product, pk=pk, user=request.user)
     if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES, instance=product, user=request.user)
+        form = ProductForm(request.POST, instance=product, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Producto actualizado exitosamente!')
@@ -215,47 +215,52 @@ def generate_pdf(request):
 
     # Estilos
     styles = getSampleStyleSheet()
+    
+    # Estilo para el título principal
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Heading1'],
-        fontSize=24,
-        spaceAfter=30,
+        fontSize=28,
+        spaceAfter=20,
         alignment=TA_CENTER,
-        textColor=colors.black
+        textColor=colors.HexColor('#2c3e50')  # Azul oscuro
     )
 
+    # Estilo para información del negocio
     business_style = ParagraphStyle(
         'BusinessInfo',
         parent=styles['Normal'],
         fontSize=12,
         spaceAfter=6,
-        alignment=TA_LEFT
+        alignment=TA_LEFT,
+        textColor=colors.HexColor('#34495e')  # Gris oscuro
     )
 
+    # Estilo para información del documento
     info_style = ParagraphStyle(
         'InfoStyle',
         parent=styles['Normal'],
         fontSize=11,
         spaceAfter=4,
-        alignment=TA_LEFT
+        alignment=TA_LEFT,
+        textColor=colors.HexColor('#7f8c8d')  # Gris medio
     )
 
     story = []
 
-    # Logo y encabezado
-    header_data = []
-
-    # Si hay logo, agregarlo
+    # Marca de agua con logo (si existe)
     if profile.business_logo:
         try:
-            # Redimensionar logo si es necesario
             logo_path = profile.business_logo.path
-            img = Image(logo_path, width=3*cm, height=3*cm)
-            logo_cell = img
+            # Crear marca de agua transparente en la esquina superior izquierda
+            watermark = Image(logo_path, width=4*cm, height=4*cm)
+            watermark.drawHeight = 4*cm
+            watermark.drawWidth = 4*cm
+            # Hacer transparente (alpha = 0.3)
+            watermark.opacity = 0.3
+            story.append(watermark)
         except:
-            logo_cell = ""
-    else:
-        logo_cell = ""
+            pass
 
     # Información del negocio
     business_info = []
@@ -271,29 +276,10 @@ def generate_pdf(request):
         business_info.append(profile.email)
 
     business_text = "<br/>".join(business_info) if business_info else "Información del negocio"
+    story.append(Paragraph(business_text, business_style))
+    story.append(Spacer(1, 30))
 
-    # Crear tabla de encabezado
-    header_table = Table([
-        [logo_cell, Paragraph(business_text, business_style)]
-    ], colWidths=[4*cm, 12*cm])
-
-    header_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
-        ('ALIGN', (1, 0), (1, 0), 'LEFT'),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-    ]))
-
-    story.append(header_table)
-    story.append(Spacer(1, 20))
-
-    # Título
-    story.append(Paragraph("PRESUPUESTO", title_style))
-
-    # Información del presupuesto
+    # Información del documento
     story.append(Paragraph(f"<b>Fecha:</b> {creation_date.strftime('%d/%m/%Y')}", info_style))
 
     # Solo mostrar cliente si se proporcionó
@@ -304,17 +290,14 @@ def generate_pdf(request):
     if valid_until:
         story.append(Paragraph(f"<b>Válido hasta:</b> {valid_until.strftime('%d/%m/%Y')}", info_style))
 
-    story.append(Spacer(1, 20))
+    story.append(Spacer(1, 25))
 
-    # Línea separadora
-    story.append(Paragraph("_" * 80, styles['Normal']))
-    story.append(Spacer(1, 20))
+    # Tabla de productos con índice
+    data = [['#', 'Producto', 'Cantidad', 'Precio Unitario', 'Subtotal']]
 
-    # Tabla de productos
-    data = [['Producto', 'Cantidad', 'Precio Unitario', 'Subtotal']]
-
-    for item in cart.items.all():
+    for index, item in enumerate(cart.items.all(), 1):
         data.append([
+            str(index),
             item.product.name,
             str(item.quantity),
             f"${item.get_price():.2f}",
@@ -322,29 +305,45 @@ def generate_pdf(request):
         ])
 
     # Fila del total
-    data.append(['', '', 'TOTAL:', f"${cart.get_total():.2f}"])
+    data.append(['', '', '', 'TOTAL:', f"${cart.get_total():.2f}"])
 
-    # Crear tabla más ancha
-    table = Table(data, colWidths=[8*cm, 2*cm, 3*cm, 3*cm])
+    # Crear tabla con columnas coloreadas
+    table = Table(data, colWidths=[1*cm, 7*cm, 2*cm, 3*cm, 3*cm])
+    
+    # Definir colores
+    header_color = colors.HexColor('#3498db')  # Azul
+    row_color = colors.HexColor('#ecf0f1')     # Gris claro
+    total_color = colors.HexColor('#e74c3c')   # Rojo
+    
     table.setStyle(TableStyle([
-        # Encabezado
+        # Encabezado con color
+        ('BACKGROUND', (0, 0), (-1, 0), header_color),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 12),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('ALIGN', (0, 1), (0, -2), 'LEFT'),  # Nombres de productos alineados a la izquierda
+        ('ALIGN', (1, 1), (1, -2), 'LEFT'),  # Nombres de productos alineados a la izquierda
+        ('ALIGN', (0, 1), (0, -2), 'CENTER'),  # Índices centrados
 
-        # Bordes
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        # Filas alternadas con color
+        ('BACKGROUND', (0, 1), (-1, -2), row_color),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -2), [row_color, colors.white]),
 
-        # Fila del total
+        # Fila del total con color
+        ('BACKGROUND', (0, -1), (-1, -1), total_color),
+        ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
         ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
         ('FONTSIZE', (0, -1), (-1, -1), 12),
 
+        # Bordes más delgados
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#bdc3c7')),
+        ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor('#2980b9')),
+
         # Padding
-        ('LEFTPADDING', (0, 0), (-1, -1), 6),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
     ]))
 
     story.append(table)
@@ -356,7 +355,7 @@ def generate_pdf(request):
     response = HttpResponse(buffer, content_type='application/pdf')
 
     # Nombre del archivo con información adicional
-    filename_parts = ["presupuesto", datetime.now().strftime("%Y%m%d_%H%M%S")]
+    filename_parts = ["cotizacion", datetime.now().strftime("%Y%m%d_%H%M%S")]
     if client_name.strip():
         # Limpiar nombre del cliente para el filename
         clean_client_name = "".join(c for c in client_name if c.isalnum() or c in (' ', '-', '_')).rstrip()

@@ -11,7 +11,11 @@ SECRET_KEY = 'django-insecure-change-this-in-production-12345'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+# ALLOWED_HOSTS de PRODUCCIÓN
 ALLOWED_HOSTS = ['leomontagut.pythonanywhere.com', 'localhost', '127.0.0.1']
+
+# ALLOWED_HOSTS LOCAL para desarrollo (comentado para producción)
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -55,7 +59,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'inventory_project.wsgi.application'
 
-# Database - REEMPLAZA CON TUS DATOS REALES
+# Database - Configuración de PRODUCCIÓN (comentada para desarrollo local)
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'leomontagut$default',
+#         'USER': 'leomontagut',
+#         'PASSWORD': '9&&D~c)hC6))P}-',
+#         'HOST': 'leomontagut.mysql.pythonanywhere-services.com',
+#         'PORT': '3306',
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#             'charset': 'utf8mb4',
+#         },
+#     }
+# }
+
+# Database - Configuración de PRODUCCIÓN
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -70,6 +90,22 @@ DATABASES = {
         },
     }
 }
+
+# Database - Configuración LOCAL para desarrollo (comentado para producción)
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'inventory_local',
+#         'USER': 'root',
+#         'PASSWORD': '',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#             'charset': 'utf8mb4',
+#         },
+#     }
+# }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

@@ -45,42 +45,46 @@
 
 <!-- Lista de productos -->
 {% if products %}
-    <div class="row">
-        {% for product in products %}
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}"
-                             style="height: 200px; object-fit: cover;">
-                    {% else %}
-                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
-                             style="height: 200px;">
-                            <i class="fas fa-image fa-3x text-muted"></i>
-                        </div>
-                    {% endif %}
-
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">{{ product.name }}</h5>
-                        <p class="card-text">
-                            <small class="text-muted">{{ product.category.name }}</small><br>
-                            <strong class="text-success">${{ product.price }}</strong><br>
-                            {% if product.stock_quantity %}
-                                <small class="text-info">Stock: {{ product.stock_quantity }}</small>
-                            {% endif %}
-                        </p>
-
-                        <div class="mt-auto">
-                            <a href="{% url 'add_to_cart' product.pk %}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-cart-plus"></i> Agregar al Carrito
-                            </a>
-                            <a href="{% url 'edit_product' product.pk %}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                            <tr>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.category.name }}</td>
+                                <td class="text-success">${{ product.price }}</td>
+                                <td>
+                                    {% if product.stock_quantity %}
+                                        {{ product.stock_quantity }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'add_to_cart' product.pk %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-cart-plus"></i> Agregar al Carrito
+                                    </a>
+                                    <a href="{% url 'edit_product' product.pk %}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-        {% endfor %}
+        </div>
     </div>
 {% else %}
     <div class="text-center py-5">
